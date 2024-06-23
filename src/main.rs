@@ -14,7 +14,7 @@ fn main() {
 
     for stream in listener.incoming() {
         match stream {
-            Ok(mut _stream) => {
+            Ok(_stream) => {
                 println!("accepted new connection");
                 handle_stream(_stream);
             }
