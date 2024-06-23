@@ -29,12 +29,13 @@ fn handle_stream(mut stream: TcpStream) {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).unwrap();
 
-    let get = b"GET / HTTP/1.1\r\n\r\n";
+    let get = b"GET / HTTP/1.1\r\n";
     let resp = if buffer.starts_with(get) {
         "HTTP/1.1 200 OK\r\n\r\n"
     } else {
         "HTTP/1.1 404 Not Found\r\n\r\n"
     };
+    print!("HELLO");
     //
     stream.write(resp.as_bytes()).unwrap();
     stream.flush().unwrap()
