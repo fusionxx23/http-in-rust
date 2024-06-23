@@ -35,6 +35,7 @@ fn handle_stream(mut stream: TcpStream) {
     } else {
         "HTTP/1.1 404 Not Found\r\n\r\n"
     };
+    //
     stream.write(resp.as_bytes()).unwrap();
     stream.flush().unwrap()
 }
