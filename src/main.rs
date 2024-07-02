@@ -39,22 +39,27 @@ fn handle_stream(mut stream: TcpStream) {
     let method = b[0]; 
     let path = b[1]; 
     let scheme = b[2];
-    let resp: mut &str = "HTTP/1.1 404 Not Found\r\n\r\n"; 
-    
+    let mut resp: Option<String> = None;
+    print!("{},{},{}", method, path, scheme);
+
     if method == "GET"  { 
         if scheme.starts_with("HTTP/1.1\r\n") {
             let path_vec = path.split("/").collect::<Vec<&str>>();
-            if path_vec[1] == "echo" {
-               
-                let content_length  = path_vec[2].len().to_string();
-                if(content_length > 0) { resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:" 
-                    + content_length + "\r\n\r\n" + path_vec[2];
-                }
+            if path_vec[1] == "echo" { 
+                let content_length  = path_vec[2].len();
+                if content_length > 0 {
+                    resp = Some(format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                        content_length.to_string(), path_vec[2]));
+                } 
+            }  else if path_vec[1] == "" {
+              resp = Some("HTTP/1.1 200 OK\r\n\r\n".to_owned());
             }
         }
     }
-
-    //
+    let resp = match resp {
+        Some(i) => i,
+        None => "HTTP/1.1 404 Not Found\r\n\r\n".to_string()
+    }; 
     stream.write(resp.as_bytes()).unwrap();
     stream.flush().unwrap()
 }
