@@ -1,16 +1,14 @@
 // Uncomment this block to pass the first stage
+mod http_request; 
+mod http_response; 
 use std::{
-    io::{BufRead, Read, Write},
+    io::{Read, Write},
     net::{TcpListener, TcpStream},
     str
 };
 
 fn main() {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
     println!("Logs from your program will appear here!");
-
-    // Uncomment this block to pass the first stage
-
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
     
     for stream in listener.incoming() {
@@ -35,27 +33,35 @@ fn handle_stream(mut stream: TcpStream) {
             panic!("Error");
         },
     };
-    let b = a.split(' ').collect::<Vec<&str>>();
-    let method = b[0]; 
-    let path = b[1]; 
-    let scheme = b[2];
-    let mut resp: Option<String> = None;
-    print!("{},{},{}", method, path, scheme);
+    let request = 
+        http_request::HttpRequest::new(&a).unwrap();
 
-    if method == "GET"  { 
-        if scheme.starts_with("HTTP/1.1\r\n") {
-            let path_vec = path.split("/").collect::<Vec<&str>>();
+    let mut resp: Option<String> = None;
+    print!("{}", request.path);
+
+    if request.method.as_str() == "GET"  { 
+        if request.scheme.starts_with("HTTP/1.1\r\n") {
+            let path_vec = request.path.split("/").collect::<Vec<&str>>();
             if path_vec[1] == "echo" { 
                 let content_length  = path_vec[2].len();
                 if content_length > 0 {
                     resp = Some(format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
                         content_length.to_string(), path_vec[2]));
-                } 
-            }  else if path_vec[1] == "" {
+                }
+            } else if path_vec[1] == "user-agent"{
+                let user_agent = request.get_header("User-Agent");
+                if let Some(x) = user_agent {
+                    let a  = x.split(":").collect::<Vec<&str>>();
+                    if a.len() > 1 {
+                       resp = Some(http_response::create_text_plain_response(a[1]));
+                    }
+                }
+            } else if path_vec[1] == "" {
               resp = Some("HTTP/1.1 200 OK\r\n\r\n".to_owned());
             }
         }
     }
+
     let resp = match resp {
         Some(i) => i,
         None => "HTTP/1.1 404 Not Found\r\n\r\n".to_string()
