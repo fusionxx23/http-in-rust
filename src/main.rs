@@ -37,11 +37,12 @@ fn handle_stream(mut stream: TcpStream) {
         http_request::HttpRequest::new(&a).unwrap();
 
     let mut resp: Option<String> = None;
-    print!("{}", request.path);
-
+    println!("{}, {}, {}", request.path, request.scheme, request.method.as_str().to_owned());
+     
     if request.method.as_str() == "GET"  { 
-        if request.scheme.starts_with("HTTP/1.1\r\n") {
+        if request.scheme.starts_with("HTTP/1.1") {
             let path_vec = request.path.split("/").collect::<Vec<&str>>();
+            println!("{}", path_vec[1].to_owned());
             if path_vec[1] == "echo" { 
                 let content_length  = path_vec[2].len();
                 if content_length > 0 {
@@ -51,7 +52,7 @@ fn handle_stream(mut stream: TcpStream) {
             } else if path_vec[1] == "user-agent"{
                 let user_agent = request.get_header("User-Agent");
                 if let Some(x) = user_agent {
-                    let a  = x.split(":").collect::<Vec<&str>>();
+                    let a  = x.split(": ").collect::<Vec<&str>>();
                     if a.len() > 1 {
                        resp = Some(http_response::create_text_plain_response(a[1]));
                     }

@@ -40,6 +40,7 @@ pub struct HttpRequest<'a> {
 
 impl<'a> HttpRequest<'a>{ 
     pub fn new(a:&'a str) -> Result<Self,MethodError> { 
+        println!("{}",a.to_owned());
         let blocks = a.split("\r\n").collect::<Vec<&'a str>>();
         if blocks.len() < 1 {
             return Err(MethodError);
@@ -80,6 +81,7 @@ impl<'a> HttpRequest<'a>{
     pub fn get_header(&self, s:&str) -> Option<&&str> {
         for header in &self.headers[..] {
             if header.contains(s) {
+                print!("{}",header.to_owned());
                 return Some(header)
             }
         };
