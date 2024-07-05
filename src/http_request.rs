@@ -9,6 +9,15 @@ pub enum Method {
 #[derive(Debug, Clone)]
 pub struct MethodError;
 
+#[derive(Debug, Clone)]
+pub struct InvalidRequest;
+
+#[derive(Debug, Clone)]
+pub enum HttpRequestErrors {
+    InvalidRequest(InvalidRequest), 
+    MethodError(MethodError)
+}
+
 impl Method {
   pub fn as_str(&self) -> &'static str {
         match self {
@@ -18,13 +27,13 @@ impl Method {
             Method::PUT => "PUT",
         }
     }
-    fn from_str(s:&str) -> Result<Method, MethodError> {
+    fn from_str(s:&str) -> Result<Method, HttpRequestErrors> {
         let a =  match s.as_ref() {
             "GET" => Ok(Method::GET),
             "POST" => Ok(Method::POST),
             "DELETE" => Ok(Method::DELETE),
             "PUT" => Ok(Method::PUT),
-            _ => Err(MethodError),
+            _ => Err(HttpRequestErrors::MethodError(MethodError)),
         }; 
         a
     }
@@ -39,16 +48,16 @@ pub struct HttpRequest<'a> {
 }
 
 impl<'a> HttpRequest<'a>{ 
-    pub fn new(a:&'a str) -> Result<Self,MethodError> { 
+    pub fn new(a:&'a str) -> Result<Self,HttpRequestErrors> { 
         println!("{}",a.to_owned());
         let blocks = a.split("\r\n").collect::<Vec<&'a str>>();
         if blocks.len() < 1 {
-            return Err(MethodError);
+            return Err(HttpRequestErrors::InvalidRequest(InvalidRequest));
         }
 
         let req_params = blocks[0].split(' ').collect::<Vec<&str>>(); 
         if req_params.len() < 3 {
-            return Err(MethodError)
+            return Err(HttpRequestErrors::InvalidRequest(InvalidRequest))
         }
         let method = Method::from_str(req_params[0])?;
         let path = req_params[1]; 
