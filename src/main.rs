@@ -2,9 +2,7 @@
 mod http_request; 
 mod http_response; 
 use std::{
-    io::{Read, Write},
-    net::{TcpListener, TcpStream},
-    str
+    clone, io::{Read, Write}, net::{TcpListener, TcpStream}, str, thread
 };
 
 fn main() {
@@ -15,7 +13,7 @@ fn main() {
         match stream {
             Ok(_stream) => {
                 println!("accepted new connection");
-                handle_stream(_stream);
+                thread::spawn(|| handle_stream(_stream));
             }
             Err(e) => {
                 println!("error: {}", e);
@@ -33,11 +31,11 @@ fn handle_stream(mut stream: TcpStream) {
             panic!("Error");
         },
     };
+    println!("A: {}", a);
     let request = 
         http_request::HttpRequest::new(&a).unwrap();
 
     let mut resp: Option<String> = None;
-    println!("{}, {}, {}", request.path, request.scheme, request.method.as_str().to_owned());
      
     if request.method.as_str() == "GET"  { 
         if request.scheme.starts_with("HTTP/1.1") {
@@ -57,6 +55,15 @@ fn handle_stream(mut stream: TcpStream) {
                        resp = Some(http_response::create_text_plain_response(a[1]));
                     }
                 }
+            } else if path_vec[1] == "files"{
+               let file_path = path_vec.get(2);
+               if let Some(file_path) = file_path {
+                let file_resp = http_response::create_file_response(file_path);
+                if let Ok(fr) = file_resp { 
+                  println!("fr:{}", fr);
+                  resp = Some(fr.clone());
+                }
+               }
             } else if path_vec[1] == "" {
               resp = Some("HTTP/1.1 200 OK\r\n\r\n".to_owned());
             }

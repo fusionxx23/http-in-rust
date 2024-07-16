@@ -1,3 +1,5 @@
+use std::fs;
+
 
 
 pub enum Method {
@@ -38,6 +40,7 @@ impl Method {
         a
     }
 }
+
 
 pub struct HttpRequest<'a> {
     pub path: String,
