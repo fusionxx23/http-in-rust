@@ -15,7 +15,7 @@ fn main() {
         match stream {
             Ok(_stream) => {
                 println!("accepted new connection");
-                handle_stream(_stream);
+                std::thread::spawn(|| handle_stream(_stream));
             }
             Err(e) => {
                 println!("error: {}", e);
@@ -23,7 +23,7 @@ fn main() {
         }
     }
 }
-//
+
 fn handle_stream(mut stream: TcpStream) {
     let mut buffer =[0; 512];
     stream.read(&mut buffer).unwrap();
@@ -46,8 +46,9 @@ fn handle_stream(mut stream: TcpStream) {
             if path_vec[1] == "echo" { 
                 let content_length  = path_vec[2].len();
                 if content_length > 0 {
-                    resp = Some(format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
-                        content_length.to_string(), path_vec[2]));
+                    resp = Some(http_response::create_text_plain_response(path_vec[2]));
+                    // resp = Some(format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                    //     content_length.to_string(), path_vec[2]));
                 }
             } else if path_vec[1] == "user-agent"{
                 let user_agent = request.get_header("User-Agent");
