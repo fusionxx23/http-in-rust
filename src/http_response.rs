@@ -4,7 +4,7 @@ use std::{env, fs};
 pub fn create_text_plain_response(body:&str) -> String {
  let content_length = body.len();
  format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
-    content_length.to_string(), body)
+    content_length, body)
 }
 
 fn read_file(path:&str) ->  Result<String, FileRespError> {
@@ -38,7 +38,7 @@ pub fn create_file_response(path:&str) -> Result<String, FileRespError> {
         let content_length = content.len();
 
         Ok(format!("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}",
-        content_length.to_string(), content))
+        content_length, content))
     } else {
         Err(FileRespError::ArgumentNotFound("No directory argument found.".to_owned()))
     }
