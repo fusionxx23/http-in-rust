@@ -1,34 +1,42 @@
-
-
 pub enum Method {
-    GET, 
-    POST, 
-    DELETE, 
+    Get, 
+    Post, 
+    Delete, 
     PUT
 }
 #[derive(Debug, Clone)]
 pub struct MethodError;
 
+#[derive(Debug, Clone)]
+pub struct InvalidRequest;
+
+#[derive(Debug, Clone)]
+pub enum HttpRequestErrors {
+    InvalidRequest(InvalidRequest), 
+    MethodError(MethodError)
+}
+
 impl Method {
   pub fn as_str(&self) -> &'static str {
         match self {
-            Method::GET => "GET",
-            Method::POST => "POST",
-            Method::DELETE => "DELETE",
+            Method::Get => "Get",
+            Method::Post => "Post",
+            Method::Delete => "Delete",
             Method::PUT => "PUT",
         }
     }
-    fn from_str(s:&str) -> Result<Method, MethodError> {
-        let a =  match s.as_ref() {
-            "GET" => Ok(Method::GET),
-            "POST" => Ok(Method::POST),
-            "DELETE" => Ok(Method::DELETE),
+    fn from_str(s:&str) -> Result<Method, HttpRequestErrors> {
+         match s {
+            "GET" => Ok(Method::Get),
+            "POST" => Ok(Method::Post),
+            "DELETE" => Ok(Method::Delete),
             "PUT" => Ok(Method::PUT),
-            _ => Err(MethodError),
-        }; 
-        a
+            _ => Err(HttpRequestErrors::MethodError(MethodError)),
+        }
+        
     }
 }
+
 
 pub struct HttpRequest<'a> {
     pub path: String,
@@ -39,16 +47,16 @@ pub struct HttpRequest<'a> {
 }
 
 impl<'a> HttpRequest<'a>{ 
-    pub fn new(a:&'a str) -> Result<Self,MethodError> { 
+    pub fn new(a:&'a str) -> Result<Self,HttpRequestErrors> { 
         println!("{}",a.to_owned());
         let blocks = a.split("\r\n").collect::<Vec<&'a str>>();
-        if blocks.len() < 1 {
-            return Err(MethodError);
+        if blocks.is_empty() {
+            return Err(HttpRequestErrors::InvalidRequest(InvalidRequest));
         }
 
         let req_params = blocks[0].split(' ').collect::<Vec<&str>>(); 
         if req_params.len() < 3 {
-            return Err(MethodError)
+            return Err(HttpRequestErrors::InvalidRequest(InvalidRequest))
         }
         let method = Method::from_str(req_params[0])?;
         let path = req_params[1]; 
@@ -59,10 +67,7 @@ impl<'a> HttpRequest<'a>{
           headers = Some(blocks[1..blocks.len()-2].to_owned());
         }
 
-       let headers = match headers {
-            Some(i) => i, 
-            None => vec![]
-        };
+       let headers = headers.unwrap_or_default();
 
         // Body should always come last
         let body = blocks[blocks.len() - 1];
@@ -81,7 +86,7 @@ impl<'a> HttpRequest<'a>{
     pub fn get_header(&self, s:&str) -> Option<&&str> {
         for header in &self.headers[..] {
             if header.contains(s) {
-                print!("{}",header.to_owned());
+                print!("{}",header);
                 return Some(header)
             }
         };
