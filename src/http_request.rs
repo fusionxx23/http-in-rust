@@ -56,6 +56,7 @@ impl<'a> HttpRequest<'a> {
         if req_params.len() < 3 {
             return Err(HttpRequestErrors::InvalidRequest(InvalidRequest));
         }
+
         let method = Method::from_str(req_params[0])?;
         let path = req_params[1];
         let scheme = req_params[2];
