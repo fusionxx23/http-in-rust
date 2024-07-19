@@ -1,7 +1,7 @@
 use std::{env, fs};
 
 
-pub fn create_text_plain_response(body:&str) -> String {
+pub fn get_text_plain_response(body:&str) -> String {
  let content_length = body.len();
  format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
     content_length, body)
@@ -23,7 +23,8 @@ pub enum FileRespError {
     Io(std::io::Error), 
     ArgumentNotFound(String),
 }
-pub fn create_file_response(path:&str) -> Result<String, FileRespError> {
+
+pub fn get_file_response(path:&str) -> Result<String, FileRespError> {
 
     let args: Vec<String> = env::args().collect();  
     let dir = args.get(2);

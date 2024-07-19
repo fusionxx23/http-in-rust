@@ -2,7 +2,7 @@ pub enum Method {
     Get, 
     Post, 
     Delete, 
-    PUT
+    Put
 }
 #[derive(Debug, Clone)]
 pub struct MethodError;
@@ -19,10 +19,10 @@ pub enum HttpRequestErrors {
 impl Method {
   pub fn as_str(&self) -> &'static str {
         match self {
-            Method::Get => "Get",
-            Method::Post => "Post",
-            Method::Delete => "Delete",
-            Method::PUT => "PUT",
+            Method::Get => "GET",
+            Method::Post => "POST",
+            Method::Delete => "DELETE",
+            Method::Put => "PUT",
         }
     }
     fn from_str(s:&str) -> Result<Method, HttpRequestErrors> {
@@ -30,7 +30,7 @@ impl Method {
             "GET" => Ok(Method::Get),
             "POST" => Ok(Method::Post),
             "DELETE" => Ok(Method::Delete),
-            "PUT" => Ok(Method::PUT),
+            "PUT" => Ok(Method::Put),
             _ => Err(HttpRequestErrors::MethodError(MethodError)),
         }
         
@@ -83,11 +83,15 @@ impl<'a> HttpRequest<'a>{
     }
 
 
-    pub fn get_header(&self, s:&str) -> Option<&&str> {
+    pub fn get_header(&self, s:&str) -> Option<&str> {
         for header in &self.headers[..] {
             if header.contains(s) {
                 print!("{}",header);
-                return Some(header)
+                let a  = header.split(": ").collect::<Vec<&str>>();
+                if a.is_empty() {
+                    return None
+                }
+                return Some(a[1])
             }
         };
         None 
