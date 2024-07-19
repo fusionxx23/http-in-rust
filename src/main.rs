@@ -5,6 +5,8 @@ use std::{
      env, fs::File, io::{BufReader, Read, Write}, net::{TcpListener, TcpStream}, str, thread
 };
 
+use http_request::HttpRequest;
+
 fn main() {
     println!("Logs from your program will appear here!");
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
@@ -32,11 +34,7 @@ fn get_env_directory() -> Result<String, ()>   {
     Ok(dir.clone())
 }
 fn handle_stream(mut stream: TcpStream) {
-    let resp = get_response(stream.clone());
-    stream.write_all(resp.as_bytes()).unwrap();
-    stream.flush().unwrap()
-}
-fn get_response(mut stream: TcpStream) -> String {
+
     let mut buffer =  vec![0;2048];
     stream.read(&mut buffer).unwrap();
     let a  = match String::from_utf8(buffer.to_vec()) {
@@ -47,6 +45,11 @@ fn get_response(mut stream: TcpStream) -> String {
     };
     let request = 
         http_request::HttpRequest::new(&a).unwrap();
+    let resp = get_response(request);
+    stream.write_all(resp.as_bytes()).unwrap();
+    stream.flush().unwrap()
+}
+fn get_response(request:HttpRequest ) -> String {
     let mut resp = "HTTP/1.1 404 Not Found\r\n\r\n".to_owned();
     
     if request.scheme.starts_with("HTTP/1.1") {
