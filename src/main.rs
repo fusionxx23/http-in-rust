@@ -63,10 +63,10 @@ fn get_response(request: HttpRequest) -> String {
     let accept_encoding = request.get_header("Accept-Encoding");
 
     if let Some(enc) = accept_encoding {
-        if enc == "gzip" {
+        if enc.contains("gzip") {
             http_response
                 .headers
-                .push("Content-Encoding: ".to_string() + enc);
+                .push("Content-Encoding: ".to_string() + "gzip");
         }
     }
 
